@@ -86,5 +86,8 @@ module.exports = {
     getMembers,
     createMember,
     updateMember,
-    deleteMember
+    deleteMember,
+    checkCallsign
 };
+
+
