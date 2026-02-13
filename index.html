@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMS Roster - نظام الروستر الطبي</title>
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="EMS Roster - نظام الروستر الطبي">
+    <meta property="og:description" content="نظام الروستر الطبي لخدمات الطوارئ الطبية - إدارة الأعضاء والجداول الزمنية">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://emsroster.netlify.app/">
+    <meta property="og:image" content="https://emsroster.netlify.app/B5C96CFC-040F-400C-ACFA-7E7A7CFD82CD-removebg-preview.png">
+    <meta property="og:image:secure_url" content="https://emsroster.netlify.app/B5C96CFC-040F-400C-ACFA-7E7A7CFD82CD-removebg-preview.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:site_name" content="EMS Roster">
+    <meta property="og:locale" content="ar_AR">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="EMS Roster - نظام الروستر الطبي">
+    <meta name="twitter:description" content="نظام الروستر الطبي لخدمات الطوارئ الطبية - إدارة الأعضاء والجداول الزمنية">
+    <meta name="twitter:image" content="https://emsroster.netlify.app/B5C96CFC-040F-400C-ACFA-7E7A7CFD82CD-removebg-preview.png">
+    
+    <link rel="icon" type="image/png" href="B5C96CFC-040F-400C-ACFA-7E7A7CFD82CD-removebg-preview.png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+    
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <img src="B5C96CFC-040F-400C-ACFA-7E7A7CFD82CD-removebg-preview.png" alt="EMS Logo" class="logo">
+                <h1>نظام الروستر الطبي - EMS Roster</h1>
+            </div>
+            <div class="header-actions">
+                <button class="theme-toggle" aria-label="تبديل الوضع الليلي">
+                    <span class="icon">🌙</span>
+                    <span class="text">الوضع الليلي</span>
+                </button>
+                <a href="login.html" class="btn btn-primary">لوحة الإدارة</a>
+            </div>
+        </header>
+
+        <div class="table-container">
+            <div class="table-scroll">
+                <table id="rosterTable">
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>المسمى الوظيفي</th>
+                            <th>الرمز</th>
+                            <th>تاريخ التعيين</th>
+                            <th>آخر ترقية</th>
+                            <th>ديسكورد</th>
+                            <th>MI</th>
+                            <th>AIR</th>
+                            <th>FP</th>
+                            <th>ملاحظات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rosterBody">
+                        <tr>
+                            <td colspan="10" class="empty-state">
+                                <div>
+                                    <h3>لا توجد بيانات</h3>
+                                    <p>لم يتم إضافة أي أعضاء بعد. يرجى الانتقال إلى لوحة الإدارة لإضافة أعضاء جدد.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/roster.js"></script>
+    <script src="js/theme.js"></script>
+</body>
+</html>

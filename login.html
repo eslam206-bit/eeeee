@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - EMS Roster</title>
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="تسجيل الدخول - EMS Roster">
+    <meta property="og:description" content="صفحة تسجيل الدخول لنظام الروستر الطبي لخدمات الطوارئ الطبية">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://emsroster.netlify.app/login.html">
+    <meta property="og:image" content="https://emsroster.netlify.app/B5C96CFC-040F-400C-ACFA-7E7A7CFD82CD-removebg-preview.png">
+    <meta property="og:image:secure_url" content="https://emsroster.netlify.app/B5C96CFC-040F-400C-ACFA-7E7A7CFD82CD-removebg-preview.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:site_name" content="EMS Roster">
+    <meta property="og:locale" content="ar_AR">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="تسجيل الدخول - EMS Roster">
+    <meta name="twitter:description" content="صفحة تسجيل الدخول لنظام الروستر الطبي لخدمات الطوارئ الطبية">
+    <meta name="twitter:image" content="https://emsroster.netlify.app/B5C96CFC-040F-400C-ACFA-7E7A7CFD82CD-removebg-preview.png">
+    
+    <link rel="icon" type="image/png" href="B5C96CFC-040F-400C-ACFA-7E7A7CFD82CD-removebg-preview.png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <img src="B5C96CFC-040F-400C-ACFA-7E7A7CFD82CD-removebg-preview.png" alt="EMS Logo" class="login-logo">
+                <div class="login-title-section">
+                    <h2>تسجيل الدخول</h2>
+                    <button class="theme-toggle" aria-label="تبديل الوضع الليلi">
+                        <span class="icon">🌙</span>
+                        <span class="text">الوضع الليلي</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="errorMessage" class="error-message"></div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">اسم المستخدم</label>
+                    <input type="text" id="username" name="username" required autocomplete="username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">كلمة المرور</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-secondary" style="width: 100%;">دخول</button>
+                </div>
+            </form>
+            
+            <div class="back-link">
+                <a href="index.html">العودة إلى الصفحة الرئيسية</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/login.js"></script>
+    <script src="js/theme.js"></script>
+</body>
+</html>

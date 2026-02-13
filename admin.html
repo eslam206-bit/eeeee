@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الإدارة - EMS Roster</title>
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="لوحة الإدارة - EMS Roster">
+    <meta property="og:description" content="نظام إدارة الروستر الطبي لخدمات الطوارئ الطبية">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://emsroster.netlify.app/admin.html">
+    <meta property="og:image" content="https://emsroster.netlify.app/B5C96CFC-040F-400C-ACFA-7E7A7CFD82CD-removebg-preview.png">
+    <meta property="og:image:secure_url" content="https://emsroster.netlify.app/B5C96CFC-040F-400C-ACFA-7E7A7CFD82CD-removebg-preview.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:site_name" content="EMS Roster">
+    <meta property="og:locale" content="ar_AR">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="لوحة الإدارة - EMS Roster">
+    <meta name="twitter:description" content="نظام إدارة الروستر الطبي لخدمات الطوارئ الطبية">
+    <meta name="twitter:image" content="https://emsroster.netlify.app/B5C96CFC-040F-400C-ACFA-7E7A7CFD82CD-removebg-preview.png">
+    
+    <link rel="icon" type="image/png" href="B5C96CFC-040F-400C-ACFA-7E7A7CFD82CD-removebg-preview.png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+    
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <img src="B5C96CFC-040F-400C-ACFA-7E7A7CFD82CD-removebg-preview.png" alt="EMS Logo" class="logo">
+                <h1>لوحة الإدارة - EMS Roster</h1>
+            </div>
+            <div class="header-actions">
+                <button class="theme-toggle" aria-label="تبديل الوضع الليلي">
+                    <span class="icon">🌙</span>
+                    <span class="text">الوضع الليلي</span>
+                </button>
+                <div class="admin-header">
+                    <a href="index.html" class="btn btn-secondary">الصفحة الرئيسية</a>
+                    <button id="btnLogout" class="btn btn-danger">تسجيل الخروج</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="form-container">
+            <h2 style="color: var(--primary-red); margin-bottom: 25px; font-size: 1.8em;">إضافة عضو جديد</h2>
+            
+            <div id="successMessage" class="success-message"></div>
+            <div id="errorMessageForm" class="error-message"></div>
+            
+            <form id="addMemberForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="fullName">الاسم الكامل *</label>
+                        <input type="text" id="fullName" name="fullName" placeholder="أدخل الاسم الكامل" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="title">المسمى الوظيفي *</label>
+                        <select id="title" name="title" required>
+                            <option value="">اختر المسمى الوظيفي</option>
+                            <option value="DEPUTY CHIEF">DEPUTY CHIEF</option>
+                            <option value="CHIEF OF HOSPITAL">CHIEF OF HOSPITAL</option>
+                            <option value="Hospital supervisor">Hospital supervisor</option>
+                            <option value="Human Resources">Human Resources</option>
+                            <option value="CHIEF OF DOCTOR">CHIEF OF DOCTOR</option>
+                            <option value="DOCTOR">DOCTOR</option>
+                            <option value="Junior Doctor">Junior Doctor</option>
+                            <option value="EMS Supervisor">EMS Supervisor</option>
+                            <option value="Medical Director">Medical Director</option>
+                            <option value="Paramedic Officer">Paramedic Officer</option>
+                            <option value="Licensed Paramedic">Licensed Paramedic</option>
+                            <option value="Paramedics">Paramedics</option>
+                            <option value="Senior Paramedics">Senior Paramedics</option>
+                            <option value="EMT">EMT</option>
+                            <option value="Advanced EMT">Advanced EMT</option>
+                            <option value="ECA">ECA</option>
+                            <option value="Students">Students</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="callsign">رمز النداء</label>
+                        <select id="callsign" name="callsign">
+                            <option value="">اختر رمز النداء</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hireDate">تاريخ التعيين</label>
+                        <input type="date" id="hireDate" name="hireDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lastPromotion">آخر ترقية</label>
+                        <input type="date" id="lastPromotion" name="lastPromotion">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="discord">Discord</label>
+                        <input type="text" id="discord" name="discord">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="department">القسم</label>
+                        <input type="text" id="department" name="department" readonly style="background-color: #f5f5f5; cursor: not-allowed;">
+                        <input type="hidden" id="departmentValue" name="departmentValue">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes">ملاحظات</label>
+                    <textarea id="notes" name="notes" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>الشهادات والتدريبات</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="mi" name="mi">
+                        <label for="mi">MI</label>
+                        
+                        <input type="checkbox" id="air" name="air">
+                        <label for="air">AIR</label>
+                        
+                        <input type="checkbox" id="fp" name="fp">
+                        <label for="fp">FP</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="photo">صورة العضو</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="photo" name="photo" accept="image/*">
+                        <label for="photo" class="file-upload-label">
+                            <div class="file-upload-icon">📷</div>
+                            <div class="file-upload-text">
+                                <div>اختر صورة العضو</div>
+                                <div class="file-upload-hint">أو اسحب الصورة هنا</div>
+                            </div>
+                            <img class="photo-preview" id="photoPreview" alt="Preview">
+                            <div class="photo-preview-overlay">
+                                <span class="change-photo-text">تغيير الصورة</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success" style="width: 100%; padding: 15px; font-size: 1.2em;">إضافة عضو</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="table-container">
+            <h2 style="padding: 20px; color: var(--primary-red); font-size: 1.8em;">قائمة الأعضاء</h2>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>المسمى الوظيفي</th>
+                            <th>الرمز</th>
+                            <th>القسم</th>
+                            <th>ديسكورد</th>
+                            <th>MI</th>
+                            <th>AIR</th>
+                            <th>FP</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody">
+                        <tr>
+                            <td colspan="9" class="empty-state">
+                                <div>
+                                    <h3>لا توجد بيانات</h3>
+                                    <p>لم يتم إضافة أي أعضاء بعد</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="data-management-section">
+            <h2>إدارة البيانات</h2>
+            <div class="data-actions">
+                <button id="btnExportAll" class="btn btn-primary">
+                    <span class="icon">📥</span> تصدير جميع البيانات
+                </button>
+                <button id="btnExportMembers" class="btn btn-info">
+                    <span class="icon">👥</span> تصدير الأعضاء فقط
+                </button>
+                <label for="importFile" class="btn btn-success">
+                    <span class="icon">📤</span> استيراد البيانات
+                    <input type="file" id="importFile" accept=".json" style="display:none">
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="modal-close" id="modalClose">&times;</span>
+            <h2 style="color: var(--primary-red); margin-bottom: 25px;">تعديل بيانات العضو</h2>
+            
+            <form id="editMemberForm">
+                <input type="hidden" id="editMemberId">
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="editFullName">الاسم الكامل *</label>
+                        <input type="text" id="editFullName" name="fullName" placeholder="أدخل الاسم الكامل" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editTitle">المسمى الوظيفي *</label>
+                        <select id="editTitle" name="title" required>
+                            <option value="">اختر المسمى الوظيفي</option>
+                            <option value="DEPUTY CHIEF">DEPUTY CHIEF</option>
+                            <option value="CHIEF OF HOSPITAL">CHIEF OF HOSPITAL</option>
+                            <option value="Hospital supervisor">Hospital supervisor</option>
+                            <option value="Human Resources">Human Resources</option>
+                            <option value="CHIEF OF DOCTOR">CHIEF OF DOCTOR</option>
+                            <option value="DOCTOR">DOCTOR</option>
+                            <option value="Junior Doctor">Junior Doctor</option>
+                            <option value="EMS Supervisor">EMS Supervisor</option>
+                            <option value="Medical Director">Medical Director</option>
+                            <option value="Paramedic Officer">Paramedic Officer</option>
+                            <option value="Licensed Paramedic">Licensed Paramedic</option>
+                            <option value="Paramedics">Paramedics</option>
+                            <option value="Senior Paramedics">Senior Paramedics</option>
+                            <option value="EMT">EMT</option>
+                            <option value="Advanced EMT">Advanced EMT</option>
+                            <option value="ECA">ECA</option>
+                            <option value="Students">Students</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editCallsign">رمز النداء</label>
+                        <select id="editCallsign" name="callsign">
+                            <option value="">اختر رمز النداء</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editHireDate">تاريخ التعيين</label>
+                        <input type="date" id="editHireDate" name="hireDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editLastPromotion">آخر ترقية</label>
+                        <input type="date" id="editLastPromotion" name="lastPromotion">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editDiscord">Discord</label>
+                        <input type="text" id="editDiscord" name="discord">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editDepartment">القسم</label>
+                        <input type="text" id="editDepartment" name="department" readonly style="background-color: #f5f5f5; cursor: not-allowed;">
+                        <input type="hidden" id="editDepartmentValue" name="departmentValue">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editNotes">ملاحظات</label>
+                    <textarea id="editNotes" name="notes" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>الشهادات والتدريبات</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="editMi" name="mi">
+                        <label for="editMi">MI</label>
+                        
+                        <input type="checkbox" id="editAir" name="air">
+                        <label for="editAir">AIR</label>
+                        
+                        <input type="checkbox" id="editFp" name="fp">
+                        <label for="editFp">FP</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editPhoto">تغيير الصورة (اختياري)</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="editPhoto" name="photo" accept="image/*">
+                        <label for="editPhoto" class="file-upload-label">
+                            <div class="file-upload-icon">📷</div>
+                            <div class="file-upload-text">
+                                <div>اختر صورة جديدة</div>
+                                <div class="file-upload-hint">أو اسحب الصورة هنا</div>
+                            </div>
+                            <img class="photo-preview" id="editPhotoPreview" alt="Preview">
+                            <div class="photo-preview-overlay">
+                                <span class="change-photo-text">تغيير الصورة</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="display: flex; gap: 15px;">
+                    <button type="submit" class="btn btn-success" style="flex: 1; padding: 15px;">حفظ التعديلات</button>
+                    <button type="button" id="btnEditCancel" class="btn btn-secondary" style="flex: 1; padding: 15px;">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/photo-upload.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/theme.js"></script>
+</body>
+</html>
