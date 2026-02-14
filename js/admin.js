@@ -297,7 +297,10 @@ function renderAdminTableWithAnimations(changes = null) {
     
     let html = '';
     members.forEach(member => {
-        const displayName = member.fullName || (member.firstName + ' ' + member.lastName) || 'غير محدد';
+        const nameFirst = (member.firstName && String(member.firstName)) || '';
+        const nameLast = (member.lastName && String(member.lastName)) || '';
+        const combined = (nameFirst + ' ' + nameLast).trim();
+        const displayName = (member.fullName && String(member.fullName).trim()) || (combined) || 'غير محدد';
         
         // Determine if this is a new or updated member
         let rowClass = 'fade-in';
@@ -343,8 +346,8 @@ async function handleAddMember() {
     const callsign = document.getElementById('callsign').value.trim();
     // Store department as key (departmentValue). Fallback to displayed text if key missing.
     const department = (document.getElementById('departmentValue') && document.getElementById('departmentValue').value) || document.getElementById('department').value;
-    const hireDate = document.getElementById('hireDate').value;
-    const lastPromotion = document.getElementById('lastPromotion').value;
+    const hireDate = document.getElementById('hireDate').value.trim() || null;
+    const lastPromotion = document.getElementById('lastPromotion').value.trim() || null;
     const discord = document.getElementById('discord').value.trim();
     const notes = document.getElementById('notes').value.trim();
 
@@ -354,7 +357,7 @@ async function handleAddMember() {
     }
 
     // Split full name into first and last name for compatibility
-    const nameParts = fullName.split(' ');
+    const nameParts = fullName.split(' ').filter(Boolean);
     const firstName = nameParts[0] || '';
     const lastName = nameParts.slice(1).join(' ') || '';
 
@@ -421,10 +424,13 @@ function handleEditMember(id) {
     editPhotoBase64 = member.photo || null;
     
     document.getElementById('editMemberId').value = id;
-    document.getElementById('editFullName').value = member.fullName || (member.firstName + ' ' + member.lastName) || '';
+    const _nameFirst = member.firstName || '';
+    const _nameLast = member.lastName || '';
+    const _combined = (_nameFirst + ' ' + _nameLast).trim();
+    document.getElementById('editFullName').value = (member.fullName && String(member.fullName).trim()) || _combined || '';
     document.getElementById('editTitle').value = member.title || '';
-    document.getElementById('editHireDate').value = member.hireDate || '';
-    document.getElementById('editLastPromotion').value = member.lastPromotion || '';
+    document.getElementById('editHireDate').value = formatInputDate(member.hireDate) || '';
+    document.getElementById('editLastPromotion').value = formatInputDate(member.lastPromotion) || '';
     document.getElementById('editDiscord').value = member.discord || '';
     document.getElementById('editDepartment').value = DEPARTMENTS_MAP[member.department] || member.department || '';
     document.getElementById('editDepartmentValue').value = member.department || '';
@@ -493,13 +499,13 @@ async function handleUpdateMember() {
         fullName,
         firstName: nameParts[0] || '',
         lastName: nameParts.slice(1).join(' ') || '',
-        title: formData.get('title').trim(),
-        callsign: formData.get('callsign').trim(),
-        hireDate: formData.get('hireDate'),
-        lastPromotion: formData.get('lastPromotion'),
-        discord: formData.get('discord').trim(),
+        title: (formData.get('title') || '').trim(),
+        callsign: (formData.get('callsign') || '').trim(),
+        hireDate: (formData.get('hireDate') || '').toString().trim() || null,
+        lastPromotion: (formData.get('lastPromotion') || '').toString().trim() || null,
+        discord: (formData.get('discord') || '').trim(),
         department: formData.get('departmentValue') || formData.get('department'),
-        notes: formData.get('notes').trim(),
+        notes: (formData.get('notes') || '').trim(),
         mi: document.getElementById('editMi').checked,
         air: document.getElementById('editAir').checked,
         fp: document.getElementById('editFp').checked,
@@ -535,7 +541,10 @@ async function handleDeleteMember(id) {
         return;
     }
     
-    const confirmDelete = confirm(`هل أنت متأكد من حذف ${member.firstName} ${member.lastName}؟`);
+    const delNameFirst = member.firstName || '';
+    const delNameLast = member.lastName || '';
+    const delCombined = (delNameFirst + ' ' + delNameLast).trim() || member.fullName || 'العضو';
+    const confirmDelete = confirm(`هل أنت متأكد من حذف ${delCombined}؟`);
     
     if (confirmDelete) {
         try {

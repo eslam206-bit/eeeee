@@ -1,13 +1,5 @@
-const path = require('path');
-const Database = require('better-sqlite3');
+// Database connection shim - returns the adapter that provides a unified async API
+// for both SQLite (better-sqlite3) and PostgreSQL (pg).
+const adapter = require('./adapter');
 
-const dbPath = process.env.DB_PATH
-    ? path.resolve(process.cwd(), process.env.DB_PATH)
-    : path.resolve(process.cwd(), 'database', 'hos.db');
-
-const db = new Database(dbPath);
-
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
-
-module.exports = db;
+module.exports = adapter;

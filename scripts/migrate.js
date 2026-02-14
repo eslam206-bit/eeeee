@@ -28,15 +28,19 @@ function backupJsonFiles() {
 
 function runMigration() {
     const backupPath = backupJsonFiles();
-    initializeDatabase();
+    (async () => {
+        await initializeDatabase();
+        const exported = await dataService.exportAllData();
 
-    const exported = dataService.exportAllData();
-
-    console.log('Migration completed successfully.');
-    if (backupPath) {
-        console.log(`JSON backup created at: ${backupPath}`);
-    }
-    console.log(`Members in DB: ${exported.members.length}`);
+        console.log('Migration completed successfully.');
+        if (backupPath) {
+            console.log(`JSON backup created at: ${backupPath}`);
+        }
+        console.log(`Members in DB: ${exported.members.length}`);
+    })().catch(err => {
+        console.error('Migration failed', err);
+        process.exit(1);
+    });
 }
 
 runMigration();

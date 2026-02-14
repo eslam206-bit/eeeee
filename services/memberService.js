@@ -7,11 +7,31 @@ const MEMBERS_CACHE_KEY = 'members:list';
 function normalizeNameFields(memberData) {
     const fullName = (memberData.fullName || '').trim();
     const parts = fullName.split(' ').filter(Boolean);
+    // Convert empty strings to undefined so || operator works as expected
+    const firstName = memberData.firstName && String(memberData.firstName).trim() ? String(memberData.firstName).trim() : undefined;
+    const lastName = memberData.lastName && String(memberData.lastName).trim() ? String(memberData.lastName).trim() : undefined;
     return {
         ...memberData,
         fullName,
-        firstName: memberData.firstName || parts[0] || '',
-        lastName: memberData.lastName || parts.slice(1).join(' ') || ''
+        firstName: firstName || parts[0] || '',
+        lastName: lastName || parts.slice(1).join(' ') || ''
+    };
+}
+
+function sanitizeDateFields(memberData) {
+    function parseDateToISO(value) {
+        if (!value) return null;
+        const s = String(value).trim();
+        if (!s) return null;
+        const d = new Date(s);
+        if (Number.isNaN(d.getTime())) return null;
+        return d.toISOString();
+    }
+
+    return {
+        ...memberData,
+        hireDate: parseDateToISO(memberData.hireDate),
+        lastPromotion: parseDateToISO(memberData.lastPromotion)
     };
 }
 
@@ -57,33 +77,34 @@ function invalidateMembersCache() {
     cache.del(MEMBERS_CACHE_KEY);
 }
 
-function isCallsignAvailable(callsign) {
+async function isCallsignAvailable(callsign) {
     if (!callsign) return true;
-    const existing = Member.findByCallsign(callsign);
+    const existing = await Member.findByCallsign(callsign);
     return !existing;
 }
 
-function getAllMembers() {
+async function getAllMembers() {
     const cached = cache.get(MEMBERS_CACHE_KEY);
     if (cached) {
         return cached;
     }
 
-    const members = Member.findAll();
+    const members = await Member.findAll();
     cache.set(MEMBERS_CACHE_KEY, members);
     return members;
 }
 
-function getMemberById(id) {
+async function getMemberById(id) {
     return Member.findById(id);
 }
 
-function createMember(memberData) {
-    const normalized = normalizeNameFields(memberData);
+async function createMember(memberData) {
+    let normalized = normalizeNameFields(memberData);
+    normalized = sanitizeDateFields(normalized);
     validateMemberData(normalized);
 
     if (normalized.callsign) {
-        const existing = Member.findByCallsign(normalized.callsign);
+        const existing = await Member.findByCallsign(normalized.callsign);
         if (existing) {
             const err = new Error('callsign already exists');
             err.statusCode = 409;
@@ -92,7 +113,7 @@ function createMember(memberData) {
     }
 
     const now = new Date().toISOString();
-    const created = Member.create({
+    const created = await Member.create({
         ...normalized,
         callsign: normalized.callsign || null,
         photo: processPhoto(normalized.photo || null),
@@ -104,17 +125,18 @@ function createMember(memberData) {
     return created;
 }
 
-function updateMember(id, memberData) {
-    const existing = Member.findById(id);
+async function updateMember(id, memberData) {
+    const existing = await Member.findById(id);
     if (!existing) {
         return null;
     }
 
     const merged = normalizeNameFields({ ...existing, ...memberData });
-    validateMemberData(merged, { isUpdate: true });
+    const sanitized = sanitizeDateFields(merged);
+    validateMemberData(sanitized, { isUpdate: true });
 
     if (merged.callsign && merged.callsign !== existing.callsign) {
-        const withSameCallsign = Member.findByCallsign(merged.callsign);
+        const withSameCallsign = await Member.findByCallsign(merged.callsign);
         if (withSameCallsign && Number(withSameCallsign.id) !== Number(id)) {
             const err = new Error('callsign already exists');
             err.statusCode = 409;
@@ -122,10 +144,10 @@ function updateMember(id, memberData) {
         }
     }
 
-    const updated = Member.update(id, {
-        ...merged,
-        callsign: merged.callsign || null,
-        photo: processPhoto(merged.photo, existing.photo),
+    const updated = await Member.update(id, {
+        ...sanitized,
+        callsign: sanitized.callsign || null,
+        photo: processPhoto(sanitized.photo, existing.photo),
         updatedAt: new Date().toISOString()
     });
 
@@ -133,8 +155,8 @@ function updateMember(id, memberData) {
     return updated;
 }
 
-function deleteMember(id) {
-    const existing = Member.findById(id);
+async function deleteMember(id) {
+    const existing = await Member.findById(id);
     if (!existing) {
         return false;
     }
@@ -143,7 +165,7 @@ function deleteMember(id) {
         imageHandler.removePhoto(existing.photo);
     }
 
-    const deleted = Member.delete(id);
+    const deleted = await Member.delete(id);
     invalidateMembersCache();
     return deleted;
 }

@@ -7,7 +7,7 @@ function getClientKey(req) {
     return req.ip || req.headers['x-forwarded-for'] || 'unknown';
 }
 
-function login(req, username, password) {
+async function login(req, username, password) {
     const key = getClientKey(req);
     const failures = failedLoginAttempts.get(key) || 0;
     if (failures >= 10) {
@@ -16,7 +16,7 @@ function login(req, username, password) {
         throw error;
     }
 
-    const isValid = Admin.verifyPassword(username, password);
+    const isValid = await Admin.verifyPassword(username, password);
     if (!isValid) {
         failedLoginAttempts.set(key, failures + 1);
         return { success: false };
@@ -32,7 +32,7 @@ function login(req, username, password) {
     return {
         success: true,
         sessionToken: req.session.admin.token,
-        admin: Admin.getAdminPublicInfo()
+        admin: await Admin.getAdminPublicInfo()
     };
 }
 

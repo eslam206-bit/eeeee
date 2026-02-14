@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const db = require('./connection');
 
 const schemaPath = path.resolve(__dirname, 'schema.sql');
+const schemaPgPath = path.resolve(__dirname, 'schema-postgres.sql');
 const membersJsonPath = path.resolve(process.cwd(), 'data', 'members.json');
 const adminJsonPath = path.resolve(process.cwd(), 'data', 'admin.json');
 
@@ -46,8 +47,9 @@ function normalizeMember(member) {
     };
 }
 
-function migrateMembersFromJson() {
-    const existingCount = db.prepare('SELECT COUNT(*) AS count FROM members').get().count;
+async function migrateMembersFromJson() {
+    const countRow = await db.get('SELECT COUNT(*) AS count FROM members');
+    const existingCount = countRow && countRow.count ? Number(countRow.count) : 0;
     if (existingCount > 0) {
         return;
     }
@@ -57,29 +59,31 @@ function migrateMembersFromJson() {
         return;
     }
 
-    const insert = db.prepare(`
-        INSERT INTO members (
-            fullName, firstName, lastName, title, callsign, department,
-            hireDate, lastPromotion, discord, notes, mi, air, fp, photo,
-            createdAt, updatedAt
-        ) VALUES (
-            @fullName, @firstName, @lastName, @title, @callsign, @department,
-            @hireDate, @lastPromotion, @discord, @notes, @mi, @air, @fp, @photo,
-            @createdAt, @updatedAt
-        )
-    `);
+    // Use transaction for import
+    await db.transaction(async (tx) => {
+        const run = (tx && tx.query) ? (sql, params) => tx.query(sql, params) : db.run;
 
-    const insertMany = db.transaction((rows) => {
-        for (const row of rows) {
-            insert.run(normalizeMember(row));
+        const insertSql = `
+            INSERT INTO members (
+                fullName, firstName, lastName, title, callsign, department,
+                hireDate, lastPromotion, discord, notes, mi, air, fp, photo,
+                createdAt, updatedAt
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+            `;
+
+        for (const m of members) {
+            const nm = normalizeMember(m);
+            await run(insertSql, [
+                nm.fullName, nm.firstName, nm.lastName, nm.title, nm.callsign, nm.department,
+                nm.hireDate, nm.lastPromotion, nm.discord, nm.notes, nm.mi ? 1 : 0, nm.air ? 1 : 0, nm.fp ? 1 : 0,
+                nm.photo, nm.createdAt, nm.updatedAt
+            ]);
         }
     });
-
-    insertMany(members);
 }
 
-function createOrMigrateAdmin() {
-    const existing = db.prepare('SELECT id FROM admin LIMIT 1').get();
+async function createOrMigrateAdmin() {
+    const existing = await db.get('SELECT id FROM admin LIMIT 1');
     if (existing) {
         return;
     }
@@ -97,17 +101,52 @@ function createOrMigrateAdmin() {
 
     const hashed = bcrypt.hashSync(String(plainPassword), 12);
 
-    db.prepare(`
-        INSERT INTO admin (username, password, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?)
-    `).run(username, hashed, now, now);
+    await db.run('INSERT INTO admin (username, password, createdAt, updatedAt) VALUES ($1,$2,$3,$4)', [username, hashed, now, now]);
 }
 
-function initializeDatabase() {
-    const schemaSql = fs.readFileSync(schemaPath, 'utf8');
-    db.exec(schemaSql);
-    migrateMembersFromJson();
-    createOrMigrateAdmin();
+async function initializeDatabase() {
+    // Choose schema based on adapter
+    const schemaSql = (process.env.DB_TYPE === 'postgres')
+        ? fs.readFileSync(schemaPgPath, 'utf8')
+        : fs.readFileSync(schemaPath, 'utf8');
+
+    // For sqlite adapter, exec might be supported via the underlying driver; for postgres we execute statements
+    if (process.env.DB_TYPE === 'postgres') {
+        // split on semicolons and run each non-empty statement inside a single transaction
+        const statements = schemaSql.split(/;\s*\n/).map(s => s.trim()).filter(Boolean);
+        await db.transaction(async (tx) => {
+            for (const stmt of statements) {
+                if (!stmt) continue;
+                try {
+                    await tx.query(stmt);
+                } catch (err) {
+                    console.error('Failed to execute schema statement:', stmt.slice(0, 200));
+                    throw err;
+                }
+            }
+        });
+    } else {
+        // sqlite - adapter provides run/get/all but not exec; execute schema safely.
+        try {
+            // If adapter exposes raw client (better-sqlite3), use exec to run multi-statement SQL
+            if (db && db.client && typeof db.client.exec === 'function') {
+                db.client.exec(schemaSql);
+            } else {
+                // Fallback: split statements and run each individually
+                const statements = schemaSql.split(/;\s*\n/).map(s => s.trim()).filter(Boolean);
+                for (const stmt of statements) {
+                    if (!stmt) continue;
+                    await db.run(stmt);
+                }
+            }
+        } catch (err) {
+            console.error('Failed to execute sqlite schema:', err);
+            throw err;
+        }
+    }
+
+    await migrateMembersFromJson();
+    await createOrMigrateAdmin();
 }
 
 module.exports = {

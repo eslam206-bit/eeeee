@@ -24,11 +24,11 @@ function copyDbFile(backupDir, timestamp) {
     return dbBackupPath;
 }
 
-function runBackup() {
+async function runBackup() {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupDir = ensureBackupDir();
 
-    const data = dataService.exportAllData();
+    const data = await dataService.exportAllData();
     const jsonBackupPath = path.join(backupDir, `hos-${timestamp}.json`);
     fs.writeFileSync(jsonBackupPath, JSON.stringify(data, null, 2), 'utf8');
 
@@ -40,4 +40,7 @@ function runBackup() {
     }
 }
 
-runBackup();
+runBackup().then(() => process.exit(0)).catch(err => {
+    console.error('Backup failed', err);
+    process.exit(1);
+});

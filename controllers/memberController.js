@@ -1,81 +1,68 @@
 const memberService = require('../services/memberService');
 
-function getMembers(req, res, next) {
+async function getMembers(req, res, next) {
     try {
         const { department } = req.query;
-        const members = department
-            ? memberService.getAllMembers().filter(member => member.department === department)
-            : memberService.getAllMembers();
+        const all = await memberService.getAllMembers();
+        const members = department ? all.filter(member => member.department === department) : all;
 
-        res.json({
-            success: true,
-            data: members
-        });
+        res.json({ success: true, data: members });
     } catch (error) {
         next(error);
     }
 }
 
-function createMember(req, res, next) {
+async function createMember(req, res, next) {
     try {
-        const created = memberService.createMember(req.body);
-        res.status(201).json({
-            success: true,
-            data: created
+        // Debug: log incoming payload to help diagnose missing fields
+        console.log('[DEBUG] createMember payload:', {
+            body: req.body
         });
+        const created = await memberService.createMember(req.body);
+        res.status(201).json({ success: true, data: created });
     } catch (error) {
         error.statusCode = error.statusCode || 400;
         next(error);
     }
 }
 
-function updateMember(req, res, next) {
+async function updateMember(req, res, next) {
     try {
-        const updated = memberService.updateMember(Number(req.params.id), req.body);
+        // Debug: log incoming payload for update
+        console.log('[DEBUG] updateMember id=%s payload:', req.params.id, { body: req.body });
+        const updated = await memberService.updateMember(Number(req.params.id), req.body);
         if (!updated) {
-            return res.status(404).json({
-                success: false,
-                message: 'Member not found'
-            });
+            return res.status(404).json({ success: false, message: 'Member not found' });
         }
 
-        return res.json({
-            success: true,
-            data: updated
-        });
+        return res.json({ success: true, data: updated });
     } catch (error) {
         error.statusCode = error.statusCode || 400;
         return next(error);
     }
 }
 
-function deleteMember(req, res, next) {
+async function deleteMember(req, res, next) {
     try {
-        const deleted = memberService.deleteMember(Number(req.params.id));
+        const deleted = await memberService.deleteMember(Number(req.params.id));
         if (!deleted) {
-            return res.status(404).json({
-                success: false,
-                message: 'Member not found'
-            });
+            return res.status(404).json({ success: false, message: 'Member not found' });
         }
 
-        return res.json({
-            success: true,
-            message: 'Member deleted'
-        });
+        return res.json({ success: true, message: 'Member deleted' });
     } catch (error) {
         return next(error);
     }
 }
 
-function checkCallsign(req, res, next) {
+async function checkCallsign(req, res, next) {
     try {
         const callsign = req.query.callsign;
         if (!callsign) {
             return res.status(400).json({ success: false, message: 'callsign query param required' });
         }
 
-        const available = memberService.isCallsignAvailable(callsign);
+        const available = await memberService.isCallsignAvailable(callsign);
         return res.json({ success: true, available });
     } catch (error) {
         return next(error);

@@ -12,6 +12,35 @@ const API_BASE_URL = (typeof window !== 'undefined' && window.location.protocol 
     ? 'http://localhost:3000'
     : '';
 
+// Date helpers
+// formatDisplayDate: for table/dialog display (DD/MM/YYYY)
+function formatDisplayDate(dateStr) {
+    if (!dateStr) return '';
+    try {
+        const d = new Date(dateStr);
+        if (Number.isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('en-GB');
+    } catch (_e) {
+        return '';
+    }
+}
+
+// formatInputDate: for setting <input type="date"> values (YYYY-MM-DD)
+function formatInputDate(dateStr) {
+    if (!dateStr) return '';
+    try {
+        const d = new Date(dateStr);
+        if (Number.isNaN(d.getTime())) return '';
+        return d.toISOString().slice(0, 10);
+    } catch (_e) {
+        return '';
+    }
+}
+
+// Expose globally for other scripts
+window.formatDisplayDate = formatDisplayDate;
+window.formatInputDate = formatInputDate;
+
 let membersCache = [];
 let adminCache = null;
 

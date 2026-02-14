@@ -7,9 +7,13 @@ const validateLogin = [
 
 const validateMember = [
     body('fullName').isString().trim().notEmpty(),
+    body('firstName').optional({ nullable: true }).isString().trim(),
+    body('lastName').optional({ nullable: true }).isString().trim(),
     body('title').isString().trim().notEmpty(),
     body('department').isString().trim().notEmpty(),
     body('callsign').optional({ nullable: true }).isString().trim(),
+    body('hireDate').optional({ nullable: true }).isISO8601().toDate(),
+    body('lastPromotion').optional({ nullable: true }).isISO8601().toDate(),
     body('mi').optional().isBoolean(),
     body('air').optional().isBoolean(),
     body('fp').optional().isBoolean()

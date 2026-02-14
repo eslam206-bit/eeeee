@@ -14,34 +14,34 @@ function sanitizeAdmin(admin) {
     };
 }
 
-function findByUsername(username) {
-    return db.prepare('SELECT * FROM admin WHERE username = ?').get(username);
+async function findByUsername(username) {
+    return db.get('SELECT * FROM admin WHERE username = $1', [username]);
 }
 
-function getAdminPublicInfo() {
-    const row = db.prepare('SELECT id, username, createdAt, updatedAt FROM admin ORDER BY id ASC LIMIT 1').get();
+async function getAdminPublicInfo() {
+    const row = await db.get('SELECT id, username, createdAt, updatedAt FROM admin ORDER BY id ASC LIMIT 1');
     return sanitizeAdmin(row);
 }
 
-function verifyPassword(username, password) {
-    const admin = findByUsername(username);
+async function verifyPassword(username, password) {
+    const admin = await findByUsername(username);
     if (!admin) {
         return false;
     }
     return bcrypt.compareSync(String(password), admin.password);
 }
 
-function updateCredentials(username, password) {
-    const existing = db.prepare('SELECT id FROM admin ORDER BY id ASC LIMIT 1').get();
+async function updateCredentials(username, password) {
+    const existing = await db.get('SELECT id FROM admin ORDER BY id ASC LIMIT 1');
     const now = new Date().toISOString();
     const hashedPassword = bcrypt.hashSync(String(password), 12);
 
     if (existing) {
-        db.prepare('UPDATE admin SET username = ?, password = ?, updatedAt = ? WHERE id = ?').run(username, hashedPassword, now, existing.id);
+        await db.run('UPDATE admin SET username = $1, password = $2, updatedAt = $3 WHERE id = $4', [username, hashedPassword, now, existing.id]);
         return getAdminPublicInfo();
     }
 
-    db.prepare('INSERT INTO admin (username, password, createdAt, updatedAt) VALUES (?, ?, ?, ?)').run(username, hashedPassword, now, now);
+    await db.run('INSERT INTO admin (username, password, createdAt, updatedAt) VALUES ($1,$2,$3,$4)', [username, hashedPassword, now, now]);
     return getAdminPublicInfo();
 }
 

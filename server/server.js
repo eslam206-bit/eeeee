@@ -9,7 +9,7 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const SQLiteStoreFactory = require('better-sqlite3-session-store');
 
-const db = require('../database/connection');
+const adapter = require('../database/connection');
 const { initializeDatabase } = require('../database/init');
 const apiRoutes = require('../routes/api');
 const { csrfProtection } = require('../middleware/auth');
@@ -21,7 +21,20 @@ const SQLiteStore = SQLiteStoreFactory(session);
 const PORT = Number(process.env.PORT || 3000);
 const ROOT_DIR = path.resolve(__dirname, '..');
 
-initializeDatabase();
+async function start() {
+    try {
+        await initializeDatabase();
+    } catch (err) {
+        console.error('Failed to initialize database', err);
+        process.exit(1);
+    }
+
+    app.listen(PORT, () => {
+        console.log(`Server running at http://localhost:${PORT}`);
+    });
+}
+
+start();
 
 const limiter = rateLimit({
     windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
@@ -48,7 +61,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(csrfProtection);
 
-app.use(session({
+const sessionOptions = {
     name: 'ems.sid',
     secret: process.env.SESSION_SECRET || 'change-me-in-production',
     resave: false,
@@ -58,15 +71,24 @@ app.use(session({
         sameSite: 'lax',
         secure: process.env.NODE_ENV === 'production',
         maxAge: 1000 * 60 * 60 * 12
-    },
-    store: new SQLiteStore({
-        client: db,
+    }
+};
+
+if ((process.env.DB_TYPE || 'sqlite').toLowerCase() === 'postgres') {
+    const pgSession = require('connect-pg-simple')(session);
+    // assume adapter.pool exists
+    sessionOptions.store = new pgSession({ pool: adapter.pool });
+} else {
+    sessionOptions.store = new SQLiteStore({
+        client: adapter.client,
         expired: {
             clear: true,
             intervalMs: 15 * 60 * 1000
         }
-    })
-}));
+    });
+}
+
+app.use(session(sessionOptions));
 
 app.use('/uploads', express.static(path.join(ROOT_DIR, 'uploads')));
 // Prevent public access to sensitive directories and files
@@ -119,6 +141,4 @@ app.get('/', (_req, res) => {
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-});
+// server is started from start() after DB initialization

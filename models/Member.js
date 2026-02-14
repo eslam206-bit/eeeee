@@ -1,9 +1,23 @@
 const db = require('../database/connection');
 
 const baseColumns = `
-    id, fullName, firstName, lastName, title, callsign, department,
-    hireDate, lastPromotion, discord, notes, mi, air, fp, photo,
-    createdAt, updatedAt
+    id,
+    fullName AS "fullName",
+    firstName AS "firstName",
+    lastName AS "lastName",
+    title,
+    callsign,
+    department,
+    hireDate AS "hireDate",
+    lastPromotion AS "lastPromotion",
+    discord,
+    notes,
+    mi,
+    air,
+    fp,
+    photo,
+    createdAt AS "createdAt",
+    updatedAt AS "updatedAt"
 `;
 
 function normalizeRow(row) {
@@ -19,85 +33,103 @@ function normalizeRow(row) {
     };
 }
 
-function findAll() {
-    const rows = db.prepare(`SELECT ${baseColumns} FROM members ORDER BY id DESC`).all();
-    return rows.map(normalizeRow);
+async function findAll() {
+    const rows = await db.all(`SELECT ${baseColumns} FROM members ORDER BY id DESC`);
+    return (rows || []).map(normalizeRow);
 }
 
-function findById(id) {
-    const row = db.prepare(`SELECT ${baseColumns} FROM members WHERE id = ?`).get(id);
+async function findById(id) {
+    const row = await db.get(`SELECT ${baseColumns} FROM members WHERE id = $1`, [id]);
     return normalizeRow(row);
 }
 
-function findByDepartment(department) {
-    const rows = db.prepare(`SELECT ${baseColumns} FROM members WHERE department = ? ORDER BY id DESC`).all(department);
-    return rows.map(normalizeRow);
+async function findByDepartment(department) {
+    const rows = await db.all(`SELECT ${baseColumns} FROM members WHERE department = $1 ORDER BY id DESC`, [department]);
+    return (rows || []).map(normalizeRow);
 }
 
-function findByCallsign(callsign) {
-    const row = db.prepare(`SELECT ${baseColumns} FROM members WHERE callsign = ?`).get(callsign);
+async function findByCallsign(callsign) {
+    const row = await db.get(`SELECT ${baseColumns} FROM members WHERE callsign = $1`, [callsign]);
     return normalizeRow(row);
 }
 
-function create(memberData) {
-    const stmt = db.prepare(`
-        INSERT INTO members (
+async function create(memberData) {
+    const returning = (process.env.DB_TYPE === 'postgres') ? 'RETURNING id' : '';
+    const sql = `INSERT INTO members (
             fullName, firstName, lastName, title, callsign, department,
             hireDate, lastPromotion, discord, notes, mi, air, fp, photo,
             createdAt, updatedAt
-        ) VALUES (
-            @fullName, @firstName, @lastName, @title, @callsign, @department,
-            @hireDate, @lastPromotion, @discord, @notes, @mi, @air, @fp, @photo,
-            @createdAt, @updatedAt
-        )
-    `);
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) ${returning}`;
 
-    const result = stmt.run({
-        ...memberData,
-        mi: memberData.mi ? 1 : 0,
-        air: memberData.air ? 1 : 0,
-        fp: memberData.fp ? 1 : 0
-    });
+    const params = [
+        memberData.fullName,
+        memberData.firstName,
+        memberData.lastName,
+        memberData.title,
+        memberData.callsign || null,
+        memberData.department,
+        memberData.hireDate || null,
+        memberData.lastPromotion || null,
+        memberData.discord || null,
+        memberData.notes || null,
+        memberData.mi ? 1 : 0,
+        memberData.air ? 1 : 0,
+        memberData.fp ? 1 : 0,
+        memberData.photo || null,
+        memberData.createdAt,
+        memberData.updatedAt
+    ];
 
-    return findById(result.lastInsertRowid);
+    const result = await db.run(sql, params);
+    const newId = result.lastInsertRowid || (result && result.lastInsertRowid) || (result && result.id) || null;
+    return findById(newId);
 }
 
-function update(id, memberData) {
-    const stmt = db.prepare(`
-        UPDATE members SET
-            fullName = @fullName,
-            firstName = @firstName,
-            lastName = @lastName,
-            title = @title,
-            callsign = @callsign,
-            department = @department,
-            hireDate = @hireDate,
-            lastPromotion = @lastPromotion,
-            discord = @discord,
-            notes = @notes,
-            mi = @mi,
-            air = @air,
-            fp = @fp,
-            photo = @photo,
-            updatedAt = @updatedAt
-        WHERE id = @id
-    `);
+async function update(id, memberData) {
+    const sql = `UPDATE members SET
+            fullName = $1,
+            firstName = $2,
+            lastName = $3,
+            title = $4,
+            callsign = $5,
+            department = $6,
+            hireDate = $7,
+            lastPromotion = $8,
+            discord = $9,
+            notes = $10,
+            mi = $11,
+            air = $12,
+            fp = $13,
+            photo = $14,
+            updatedAt = $15
+        WHERE id = $16`;
 
-    stmt.run({
-        ...memberData,
-        id,
-        mi: memberData.mi ? 1 : 0,
-        air: memberData.air ? 1 : 0,
-        fp: memberData.fp ? 1 : 0
-    });
+    const params = [
+        memberData.fullName,
+        memberData.firstName,
+        memberData.lastName,
+        memberData.title,
+        memberData.callsign || null,
+        memberData.department,
+        memberData.hireDate || null,
+        memberData.lastPromotion || null,
+        memberData.discord || null,
+        memberData.notes || null,
+        memberData.mi ? 1 : 0,
+        memberData.air ? 1 : 0,
+        memberData.fp ? 1 : 0,
+        memberData.photo || null,
+        memberData.updatedAt,
+        id
+    ];
 
+    await db.run(sql, params);
     return findById(id);
 }
 
-function remove(id) {
-    const stmt = db.prepare('DELETE FROM members WHERE id = ?');
-    const result = stmt.run(id);
-    return result.changes > 0;
+async function remove(id) {
+    const result = await db.run('DELETE FROM members WHERE id = $1', [id]);
+    return result && result.changes > 0;
 }
 
 module.exports = {

@@ -37,6 +37,19 @@ npm start
 - `bcrypt` لتشفير كلمة المرور
 - جلسات عبر `express-session` مع تخزين SQLite
 
+### دعم PostgreSQL
+
+يمكن تشغيل التطبيق مع PostgreSQL بدلاً من SQLite عبر ضبط متغير البيئة `DB_TYPE=postgres` وملء إعدادات الاتصال `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`. بعد إعداد Postgres، شغّل:
+
+```bash
+npm install
+node scripts/setup-postgres.js
+npm run migrate
+npm start
+```
+
+الجلسات ستُخزن باستخدام `connect-pg-simple` عندما يكون `DB_TYPE=postgres`.
+
 ## الصيانة
 
 - تشغيل `npm run backup` لأخذ نسخة احتياطية

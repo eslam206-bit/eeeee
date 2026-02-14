@@ -103,6 +103,11 @@ Imports members payload:
 }
 ```
 
+## PostgreSQL support
+
+Set `DB_TYPE=postgres` and provide `POSTGRES_*` env vars to use PostgreSQL instead of SQLite. Use `scripts/setup-postgres.js` to create the database and then run `npm run migrate` to initialize schema and import data.
+```
+
 ## Error Format
 
 ```json

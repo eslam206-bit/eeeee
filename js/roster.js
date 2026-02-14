@@ -107,7 +107,10 @@ function renderRosterWithAnimations(changes = null) {
             }
             
             deptMembers.forEach(member => {
-                const displayName = member.fullName || (member.firstName + ' ' + member.lastName) || 'غير محدد';
+                const nameFirst = (member.firstName && String(member.firstName)) || '';
+                const nameLast = (member.lastName && String(member.lastName)) || '';
+                const combined = (nameFirst + ' ' + nameLast).trim();
+                const displayName = (member.fullName && String(member.fullName).trim()) || (combined) || 'غير محدد';
                 
                 // Determine if this is a new or updated member
                 let rowClass = 'fade-in';
@@ -124,8 +127,8 @@ function renderRosterWithAnimations(changes = null) {
                         <td><a href="#" class="member-name" onclick="showMemberDetails('${member.id}'); return false;">${sanitizeHTML(displayName)}</a></td>
                         <td>${sanitizeHTML(member.title || '')}</td>
                         <td>${sanitizeHTML(member.callsign || '')}</td>
-                        <td>${sanitizeHTML(member.hireDate || '')}</td>
-                        <td>${sanitizeHTML(member.lastPromotion || '')}</td>
+                        <td>${sanitizeHTML(formatDisplayDate(member.hireDate) || '')}</td>
+                        <td>${sanitizeHTML(formatDisplayDate(member.lastPromotion) || '')}</td>
                         <td>${sanitizeHTML(member.discord || '')}</td>
                         <td><div class="checkbox-display ${member.mi ? 'checked' : ''}"></div></td>
                         <td><div class="checkbox-display ${member.air ? 'checked' : ''}"></div></td>
@@ -166,7 +169,10 @@ function showMemberDetails(memberId) {
     const member = getMemberById(memberId);
     if (!member) return;
     
-    const displayName = member.fullName || (member.firstName + ' ' + member.lastName) || 'غير محدد';
+    const nameFirst = (member.firstName && String(member.firstName)) || '';
+    const nameLast = (member.lastName && String(member.lastName)) || '';
+    const combined = (nameFirst + ' ' + nameLast).trim();
+    const displayName = (member.fullName && String(member.fullName).trim()) || (combined) || 'غير محدد';
     const memberInfo = `
 <div class="member-details-container">
     <div class="details-section">
@@ -210,11 +216,11 @@ function showMemberDetails(memberId) {
         </div>
         <div class="detail-item">
             <span class="detail-label">تاريخ التعيين:</span>
-            <span class="detail-value">${member.hireDate || 'غير متوفر'}</span>
+            <span class="detail-value">${member.hireDate ? sanitizeHTML(formatDisplayDate(member.hireDate)) : 'غير متوفر'}</span>
         </div>
         <div class="detail-item">
             <span class="detail-label">آخر ترقية:</span>
-            <span class="detail-value">${member.lastPromotion || 'غير متوفر'}</span>
+            <span class="detail-value">${member.lastPromotion ? sanitizeHTML(formatDisplayDate(member.lastPromotion)) : 'غير متوفر'}</span>
         </div>
     </div>
 
