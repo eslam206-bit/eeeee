@@ -105,6 +105,24 @@ function renderRosterWithAnimations(changes = null) {
                     return (a.callsign || '').localeCompare(b.callsign || '');
                 });
             }
+
+            // General numeric sort by callsign number (e.g., C-81 -> 81)
+            // Members without a numeric callsign will appear after those with numbers.
+            deptMembers.sort((a, b) => {
+                const extractNumber = cs => {
+                    if (!cs) return Number.POSITIVE_INFINITY;
+                    const m = String(cs).match(/(\d+)/);
+                    return m ? parseInt(m[1], 10) : Number.POSITIVE_INFINITY;
+                };
+
+                const na = extractNumber(a.callsign);
+                const nb = extractNumber(b.callsign);
+
+                if (na !== nb) return na - nb;
+
+                // Fallback: compare full callsign string
+                return (a.callsign || '').localeCompare(b.callsign || '');
+            });
             
             deptMembers.forEach(member => {
                 const nameFirst = (member.firstName && String(member.firstName)) || '';
